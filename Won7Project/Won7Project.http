@@ -1,0 +1,6 @@
+@Won7Project_HostAddress = http://localhost:5259
+
+GET {{Won7Project_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
