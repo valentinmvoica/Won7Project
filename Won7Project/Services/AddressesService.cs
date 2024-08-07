@@ -1,4 +1,7 @@
 ﻿using Won7Project.Data;
+using Won7Project.DTOs;
+using Won7Project.DTOs.Extensions;
+using Won7Project.Exceptions;
 using Won7Project.Models;
 
 namespace Won7Project.Services
@@ -11,15 +14,23 @@ namespace Won7Project.Services
         {
             this.ctx = ctx;
         }
-        public Address GetAddressById(int id) =>
-            ctx.Addresses.FirstOrDefault(a => a.Id==id);
+        public AddressToGetDto GetAddressById(int id) =>
+            ctx.Addresses.FirstOrDefault(a => a.Id==id).ToAddressToGet();
         public void ChangeStudent(int addressId, Guid studentId)
         {
             var address = ctx.Addresses.FirstOrDefault(a => a.Id == addressId);
-            if (address != null)
+            if (address == null)
             {
-                address.StudentId = studentId;
+                throw new IdNotFoundException($"address with id {addressId} not found");
             }
+
+            if (!ctx.Students.Any(s => s.Id == studentId))
+            {
+                throw new IdNotFoundException($"student with id {studentId} not found");
+            }
+
+            address.StudentId = studentId;
+
             ctx.SaveChanges();
         }
 

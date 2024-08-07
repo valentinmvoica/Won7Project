@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Won7Project.Data;
+using Won7Project.DTOs;
+using Won7Project.DTOs.Extensions;
+using Won7Project.Exceptions;
 using Won7Project.Models;
 
 namespace Won7Project.Services
@@ -12,28 +15,41 @@ namespace Won7Project.Services
             this.ctx = ctx;
         }
 
-        //public Student GetStudentByName(string name) =>
-        //     ctx.Students.FirstOrDefault(s => s.Name == name);
-        //public Student AddStudent(string name, int Age)
-        //{
-        //    var student = ctx.Students.FirstOrDefault(s => s.Name == name);
+        public Student GetStudentById(Guid id)
+        {
+            var st = ctx.Students.FirstOrDefault(s => s.Id == id);
 
-        //    if (student != null)
-        //    {
-        //        return student;
-        //    }
+            if (st == null)
+            {
+                throw new IdNotFoundException($"student with id {id} not found");
+            }
+            return st;
+        }
 
-        //    student = new Student { Name = name, Age = Age };
-        //    ctx.Students.Add(student);
-        //    return student;
-        //}
-        public List<Student> GetAll(bool includeAddresses = false)
+        public Student GetStudentByName(string name) =>
+             ctx.Students.FirstOrDefault(s => s.FirstName+ " " +s.LastName == name);
+
+        public Student AddStudent(string firstName, string lastName, int Age)
+        {
+            var student = ctx.Students.FirstOrDefault(s => s.FirstName ==firstName && s.LastName == lastName);
+
+            if (student != null)
+            {
+                return student;
+            }
+
+            student = new Student { FirstName = firstName, LastName = lastName, Age = Age };
+            ctx.Students.Add(student);
+            ctx.SaveChanges();
+            return student;
+        }
+        public List<StudentToGetDto> GetAll(bool includeAddresses = false)
         {
             if (includeAddresses)
             {
-                return ctx.Students.Include(s=>s.Address).ToList();
+                return ctx.Students.Include(s=>s.Address).Select(s=>s.ToStudentToGet()).ToList();
             }
-            return ctx.Students.ToList();
+            return ctx.Students.Select(s => s.ToStudentToGet()).ToList();
         }
     }
 }

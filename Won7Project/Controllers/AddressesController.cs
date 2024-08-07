@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using Won7Project.Data;
 using Won7Project.DTOs;
+using Won7Project.DTOs.ValidationAttributes;
+using Won7Project.Exceptions;
 using Won7Project.Models;
 using Won7Project.Services;
 
@@ -19,28 +22,21 @@ namespace Won7Project.Controllers
             this.studentsService = studentsService;
             this.addressesService = addressesService;
         }
-        //[HttpPost("add-student-to-address/{addressId}")]
-        //public void AddStudentToAddress(int addressId, [FromBody] StudentToCreateDTO studentToCreate, [FromQuery]bool createIfNotExist = true)
-        //{
-        //    var address = addressesService.GetAddressById(addressId);
-
-        //    if (address == null) {
-        //        return;
-        //    }
-
-        //    var studentEntity = studentsService.GetStudentByName(studentToCreate.Name);
-
-        //    if (studentEntity == null)
-        //    {
-        //        if (!createIfNotExist)
-        //        {
-        //            return;
-        //        }
-
-        //        studentEntity = studentsService.AddStudent(studentToCreate.Name, studentToCreate.Age);
-        //    }
-
-        //    addressesService.ChangeStudent(addressId, studentEntity.Id);
-        //}
+        [HttpPost("add-student-to-address/{addressId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public IActionResult AddStudentToAddress([Range(1, int.MaxValue)] int addressId, [FromBody][GuidNotEmpty] Guid studentId, [FromQuery] bool createIfNotExist = true)
+        {
+            addressesService.ChangeStudent(addressId, studentId);
+            return Ok();
+        }
+        [HttpGet("{addressId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type =typeof(AddressToGetDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public IActionResult GetAddress([Range(1, int.MaxValue)] int addressId)
+        {
+            
+            return Ok(addressesService.GetAddressById(addressId));
+        }
     }
 }
