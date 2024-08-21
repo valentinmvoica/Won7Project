@@ -1,4 +1,5 @@
-﻿using Won7Project.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Won7Project.Data;
 using Won7Project.DTOs;
 using Won7Project.DTOs.Extensions;
 using Won7Project.Exceptions;
@@ -16,23 +17,39 @@ namespace Won7Project.Services
         }
         public AddressToGetDto GetAddressById(int id) =>
             ctx.Addresses.FirstOrDefault(a => a.Id==id).ToAddressToGet();
-        public void ChangeStudent(int addressId, Guid studentId)
+        public async Task ChangeStudentAsync(int addressId, Guid studentId)
         {
-            var address = ctx.Addresses.FirstOrDefault(a => a.Id == addressId);
+            var address = await ctx.Addresses.FirstOrDefaultAsync(a => a.Id == addressId);
             if (address == null)
             {
                 throw new IdNotFoundException($"address with id {addressId} not found");
             }
 
-            if (!ctx.Students.Any(s => s.Id == studentId))
+            if (! (await ctx.Students.AnyAsync(s => s.Id == studentId)) )
             {
-                throw new IdNotFoundException($"student with id {studentId} not found");
+                var student = new Student
+                {
+                    FirstName = "Anonim",
+                    LastName = "anonim",
+                    Age = 0
+                };
+
+                ctx.Students.Add(student);
+
+                await ctx.SaveChangesAsync();
+
+                studentId = student.Id;
+
             }
 
             address.StudentId = studentId;
 
-            ctx.SaveChanges();
+            await ctx.SaveChangesAsync();
+
+
         }
+         
 
     }
 }
+

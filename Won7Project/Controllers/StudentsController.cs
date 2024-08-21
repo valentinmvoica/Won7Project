@@ -31,23 +31,29 @@ namespace Won7Project.Controllers
         /// <returns>Created entity with included id</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(StudentToGetDto))]
-        public IActionResult AddStudent([FromBody] StudentToCreateDTO studentToCreate)
+        public async Task<IActionResult> AddStudentAsync([FromBody] StudentToCreateDTO studentToCreate)
         {
-            return Created(string.Empty, studentsService.AddStudent(studentToCreate.FirstName, studentToCreate.LastName, studentToCreate.Age).ToStudentToGet());
+            //Task<Student> creationTask = studentsService.AddStudentAsync(studentToCreate.FirstName, studentToCreate.LastName, studentToCreate.Age);
+            //Student student = creationTask.Result;
+
+
+            Student student =await studentsService.AddStudentAsync(studentToCreate.FirstName, studentToCreate.LastName, studentToCreate.Age);
+            return Created(string.Empty, student.ToStudentToGet());
         }
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(StudentToGetDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
-        public IActionResult GetById([GuidNotEmpty] Guid id)
+        public async Task<IActionResult> GetById([GuidNotEmpty] Guid id)
         {
             if (id == Guid.Empty)
             {
                 return BadRequest("id invalid");
             }
-
-            var student = studentsService.GetStudentById(id).ToStudentToGet();
-            return Ok(student);
+            
+            var student = await studentsService.GetStudentByIdAsync(id);
+            
+            return Ok(student.ToStudentToGet());
         }
 
         [HttpGet]

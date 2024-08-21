@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using Won7Project.Data;
@@ -16,18 +17,38 @@ namespace Won7Project.Controllers
     {
         private readonly StudentsService studentsService;
         private readonly AddressesService addressesService;
+        private readonly StudentsRegistryDbContext ctx;
+        private readonly IMapper mapper;
 
-        public AddressesController(StudentsService studentsService, AddressesService addressesService)
+        public AddressesController(StudentsService studentsService, AddressesService addressesService, StudentsRegistryDbContext ctx, IMapper mapper)
         {
             this.studentsService = studentsService;
             this.addressesService = addressesService;
+            this.ctx = ctx;
+            this.mapper = mapper;
         }
+        [HttpPost("")]
+        public async Task<Address> CreateAddress()
+        {
+            var address = new Address
+            {
+                City = "falticeni",
+                Street = "libertatii",
+                No = 254
+            };
+            ctx.Addresses.Add(address);
+            await ctx.SaveChangesAsync();
+            return address;
+
+        }
+
+
         [HttpPost("add-student-to-address/{addressId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
-        public IActionResult AddStudentToAddress([Range(1, int.MaxValue)] int addressId, [FromBody][GuidNotEmpty] Guid studentId, [FromQuery] bool createIfNotExist = true)
+        public async Task<IActionResult> AddStudentToAddressAsync([Range(1, int.MaxValue)] int addressId, [FromBody][GuidNotEmpty] Guid studentId, [FromQuery] bool createIfNotExist = true)
         {
-            addressesService.ChangeStudent(addressId, studentId);
+            await addressesService.ChangeStudentAsync(addressId, studentId);
             return Ok();
         }
         [HttpGet("{addressId}")]
@@ -37,6 +58,21 @@ namespace Won7Project.Controllers
         {
             
             return Ok(addressesService.GetAddressById(addressId));
+        }
+
+
+        [HttpGet("")]
+        public IActionResult GetAddresses()
+        {
+            var result = new List<AddressToGetDto>();
+            var addresses = ctx.Addresses.ToList();
+            foreach( var address in addresses)
+            {
+                var mapped = mapper.Map<Address, AddressToGetDto>(address);
+                result.Add(mapped);
+            }
+
+            return Ok(result);
         }
     }
 }

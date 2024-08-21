@@ -1,8 +1,11 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 using Won7Project.Data;
+using Won7Project.DTOs;
 using Won7Project.MiddlewareFilters;
+using Won7Project.Models;
 using Won7Project.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +29,13 @@ builder.Services.AddControllers(o => {
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o=>AddXmlDoc(o));
+
+builder.Services.AddAutoMapper(cfg => {
+    cfg.CreateMap<Address, AddressToGetDto>()
+         .ForMember(dest => dest.Strada, opt => opt.MapFrom(src => src.Street))
+         .ForMember(dest => dest.Oras, opt => opt.MapFrom(src => src.City));
+});
+
 
 var app = builder.Build();
 

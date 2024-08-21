@@ -10,10 +10,10 @@ namespace Won7Project.DTOs.Extensions
                 return null;
             return new AddressToGetDto
             {
-                City = address.City,
+                Oras = address.City,
                 Id = address.Id,    
              //   No = address.No,
-                Street = address.Street,    
+                Strada = address.Street,    
                 StudentId = address.StudentId   
             };
         }
